@@ -15,8 +15,8 @@
     <string name="current_intensity_desc">当前强度</string>
     <string name="current_intensity">2 级</string>
     <string name="intensity_description">耗能强度越高，耗电量越高，但升温效果越好</string>
-    <string name="intensity_add">＋</string>
-    <string name="intensity_subtract">－</string>
+    <string name="intensity_add">△</string>
+    <string name="intensity_subtract">▽</string>
 
     <string name="start_warming">开始升温</string>
     <string name="stop_warming">停止运转</string>

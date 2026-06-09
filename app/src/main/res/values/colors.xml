@@ -22,4 +22,10 @@
     <color name="text_main">#0A0E18</color>
     <color name="text_description">#6F6F6F</color>
 
+    <!-- Button Color -->
+    <color name="btn_default">@color/blue_main</color>
+    <color name="btn_warn">@color/yellow_main</color>
+    <color name="btn_danger">@color/red_main</color>
+    <color name="btn_disabled">@color/gray</color>
+
 </resources>

@@ -8,8 +8,6 @@ import com.jupiterlyr.phonewarmer.workload.GPURenderEngine;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
-import java.io.IOException;
-import java.util.regex.Pattern;
 
 public class SystemMonitor {
 
@@ -22,8 +20,12 @@ public class SystemMonitor {
     private Listener listener;
     private boolean monitoring = false;
     private static final long UPDATE_INTERVAL = 1000; // 1秒更新一次
-    private long prevIdle = 0;
-    private long prevTotal = 0;
+    /** 上一次采样时本进程已消耗的 CPU 时间（毫秒），用于计算 1s 内的进程级 CPU 占用 */
+    private long prevProcCpuMs = 0L;
+    /** 上一次采样的墙钟时间戳（毫秒） */
+    private long prevSampleWallMs = 0L;
+    /** 用于将 CPU 占用率归一化到 100% 的核心数（按可用核心数估算） */
+    private final int cpuCoreCount = Math.max(1, Runtime.getRuntime().availableProcessors());
 
     // CPU温度文件路径（不同设备可能不同）
     private static final String[] CPU_TEMP_PATHS = {
@@ -93,44 +95,39 @@ public class SystemMonitor {
         return 0.0f;
     }
 
+    /**
+     * 计算本进程在过去采样间隔内的 CPU 占用率（百分比，0~100）。
+     *
+     * Android 8.0+ 限制了对 /proc/stat 等全局信息的访问（EACCES），因此这里改为
+     * 通过 {@link android.os.Process#getElapsedCpuTime()} 读取本进程已累计的 CPU 时间，
+     * 与墙钟流逝时间的比值即为本进程的 CPU 占用，再除以核心数归一化到“总体百分比”。
+     */
     private float getCpuLoad() {
-        try {
-            // 读取/proc/stat获取CPU使用率
-            BufferedReader reader = new BufferedReader(new FileReader("/proc/stat"));
-            String line = reader.readLine();
-            reader.close();
+        long nowProcCpuMs = android.os.Process.getElapsedCpuTime();
+        long nowWallMs = android.os.SystemClock.elapsedRealtime();
 
-            if (line != null && line.startsWith("cpu ")) {
-                String[] parts = line.split("\\s+");
-                if (parts.length >= 8) {
-                    long user = Long.parseLong(parts[1]);
-                    long nice = Long.parseLong(parts[2]);
-                    long system = Long.parseLong(parts[3]);
-                    long idle = Long.parseLong(parts[4]);
-                    long iowait = Long.parseLong(parts[5]);
-                    long irq = Long.parseLong(parts[6]);
-                    long softirq = Long.parseLong(parts[7]);
-
-                    long total = user + nice + system + idle + iowait + irq + softirq;
-
-                    // 计算增量
-                    long totalDiff = total - prevTotal;
-                    long idleDiff = idle - prevIdle;
-
-                    // 保存当前值供下次使用
-                    prevTotal = total;
-                    prevIdle = idle;
-
-                    if (totalDiff > 0) {
-                        long usedDiff = totalDiff - idleDiff;
-                        return (float) usedDiff / totalDiff * 100.0f;
-                    }
-                }
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
+        if (prevSampleWallMs == 0L) {
+            // 首次采样还没有差值可计算，先记录基准
+            prevProcCpuMs = nowProcCpuMs;
+            prevSampleWallMs = nowWallMs;
+            return 0.0f;
         }
-        return 0.0f;
+
+        long cpuDelta = nowProcCpuMs - prevProcCpuMs;
+        long wallDelta = nowWallMs - prevSampleWallMs;
+
+        prevProcCpuMs = nowProcCpuMs;
+        prevSampleWallMs = nowWallMs;
+
+        if (wallDelta <= 0L || cpuDelta < 0L) {
+            return 0.0f;
+        }
+
+        // 进程在 wallDelta 内最多可用 wallDelta * cpuCoreCount 毫秒 CPU 时间
+        float ratio = (float) cpuDelta / (float) (wallDelta * cpuCoreCount);
+        if (ratio < 0f) ratio = 0f;
+        if (ratio > 1f) ratio = 1f;
+        return ratio * 100.0f;
     }
 
     private float getGpuLoad() {

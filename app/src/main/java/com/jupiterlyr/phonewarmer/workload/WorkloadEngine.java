@@ -2,8 +2,6 @@ package com.jupiterlyr.phonewarmer.workload;
 
 import android.opengl.GLSurfaceView;
 
-import com.jupiterlyr.phonewarmer.monitor.SystemMonitor;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
@@ -11,14 +9,14 @@ import java.util.concurrent.Executors;
 
 public class WorkloadEngine {
 
+    private static final String TAG = "WorkloadEngine";
+
     private final List<Worker> workers = new ArrayList<>();
     private ExecutorService executorService;
     private volatile boolean running = false;
 
     private GPURenderEngine gpuRenderer;
     private GLSurfaceView glSurfaceView;
-    private SystemMonitor systemMonitor;
-    private float currentGpuLoad = 0.0f;
 
     public synchronized void start(int intensity) {
         stop();
@@ -34,8 +32,10 @@ public class WorkloadEngine {
         }
 
         if (intensity >= 2 && glSurfaceView != null && gpuRenderer != null) {
-            gpuRenderer.start();  // 启动GPU运算（如果可用）
+            gpuRenderer.start();
         }
+        // RenderMode 依然保持为 CONTINUOUSLY（在 setGLSurfaceView 中设置），
+        // GPURenderEngine.onDrawFrame 会根据 running 状态区分“待机低负载动画”与“高负载烤机”。
     }
 
     public synchronized void stop() {
@@ -54,28 +54,48 @@ public class WorkloadEngine {
         if (gpuRenderer != null) {
             gpuRenderer.stop();
         }
+        // 不再切回 WHEN_DIRTY：保持持续渲染模式，让待机动画仍能表示“GPU 可用”。
+        // 负载差异由 GPURenderEngine 内部根据 running 状态决定 draw call 次数。
     }
 
-    public void setGLSurfaceView(GLSurfaceView surfaceView) {
-        this.glSurfaceView = surfaceView;
-        if (surfaceView != null) {
-            // 在GL线程中安全地设置渲染器
+    /**
+     * 绑定 GLSurfaceView 并初始化 GPU 渲染器。
+     * 如果初始化失败，会抛出 RuntimeException，并保证内部状态被清理（不会留下半初始化的引用）。
+     *
+     * @param surfaceView 要绑定的 GLSurfaceView，可为 null 表示不使用 GPU
+     * @param errorListener GL 线程上 shader 编译/链接错误的回调，可为 null
+     */
+    public void setGLSurfaceView(GLSurfaceView surfaceView, GPURenderEngine.ErrorListener errorListener) {
+        // 切换前先清理之前可能持有的引用
+        this.glSurfaceView = null;
+        this.gpuRenderer = null;
+
+        if (surfaceView == null) {
+            return;
+        }
+
+        try {
             surfaceView.setEGLContextClientVersion(2); // 明确指定OpenGL ES 2.0
-            this.gpuRenderer = new GPURenderEngine();
-            surfaceView.setRenderer(gpuRenderer);
-            surfaceView.setRenderMode(GLSurfaceView.RENDERMODE_WHEN_DIRTY); // 开始时设置为按需渲染
+            // 显式指定 EGL config，避免部分设备默认 chooser 匹配失败导致 onSurfaceCreated 永不触发（黑屏）
+            // 8/8/8/8 = RGBA, 16 位深度, 0 模板
+            surfaceView.setEGLConfigChooser(8, 8, 8, 8, 16, 0);
+            GPURenderEngine renderer = new GPURenderEngine();
+            renderer.setErrorListener(errorListener);
+            surfaceView.setRenderer(renderer);
+            // 始终使用持续渲染模式：待机时让 GPURenderEngine 绘制轻量级背景动画（避免黑屏），
+            // 烤机时才提高 draw call 数量。避免使用 RENDERMODE_WHEN_DIRTY 导致需手动 requestRender。
+            surfaceView.setRenderMode(GLSurfaceView.RENDERMODE_CONTINUOUSLY);
+            // 走到这里才认为初始化成功
+            this.gpuRenderer = renderer;
+            this.glSurfaceView = surfaceView;
+        } catch (RuntimeException e) {
+            // 主线程能直接捕获到的通常是参数校验类异常（如重复 setRenderer），
+            // 失败时确保不留下半初始化的引用，外层可据此禁用 GPU 功能。
+            this.glSurfaceView = null;
+            this.gpuRenderer = null;
+            android.util.Log.e(TAG, "setGLSurfaceView failed: " + e.getMessage(), e);
+            throw e;
         }
-    }
-
-    public void setSystemMonitor(SystemMonitor monitor) {
-        this.systemMonitor = monitor;
-    }
-
-    public float getCurrentGpuLoad() {
-        if (gpuRenderer != null && gpuRenderer.isRunning()) {
-            return gpuRenderer.getGpuLoad();
-        }
-        return 0.0f;
     }
 
     public boolean isRunning() { return running; }
