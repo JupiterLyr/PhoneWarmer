@@ -1,0 +1,30 @@
+<resources>
+    <string name="app_name">Phone Warmer</string>
+
+    <!-- Panel Text -->
+    <string name="local_time">当前时间</string>
+    <string name="local_time_format">-- : -- : --</string>
+
+    <string name="device_condition">设备状态</string>
+    <string name="battery_percentage">0%</string>
+    <string name="charger_condition">充电状态：—</string>
+    <string name="charger_temperature">电池温度：—</string>
+    <string name="running_condition">运行状态：待机中</string>
+
+    <string name="consumption_control">耗能控制</string>
+    <string name="current_intensity_desc">当前强度</string>
+    <string name="current_intensity">2 级</string>
+    <string name="intensity_description">耗能强度越高，耗电量越高，但升温效果越好</string>
+    <string name="intensity_add">＋</string>
+    <string name="intensity_subtract">－</string>
+
+    <string name="start_warming">开始升温</string>
+    <string name="stop_warming">停止运转</string>
+    <string name="warming">升温中</string>
+    <string name="warming_paused">升温已暂停</string>
+
+    <string name="cpu_temperature">CPU Temperature</string>
+    <string name="gpu_temperature">GPU Temperature</string>
+    <string name="battery_temperature">Battery Temperature</string>
+    <string name="ambient_temperature">Ambient Temperature</string>
+</resources>
