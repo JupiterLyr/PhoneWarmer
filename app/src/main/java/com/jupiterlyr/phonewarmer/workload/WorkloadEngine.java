@@ -1,5 +1,9 @@
 package com.jupiterlyr.phonewarmer.workload;
 
+import android.opengl.GLSurfaceView;
+
+import com.jupiterlyr.phonewarmer.monitor.SystemMonitor;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
@@ -11,10 +15,15 @@ public class WorkloadEngine {
     private ExecutorService executorService;
     private volatile boolean running = false;
 
+    private GPURenderEngine gpuRenderer;
+    private GLSurfaceView glSurfaceView;
+    private SystemMonitor systemMonitor;
+    private float currentGpuLoad = 0.0f;
+
     public synchronized void start(int intensity) {
         stop();
 
-        int workerCount = Math.max(1, Math.min(intensity, 4));
+        int workerCount = Math.max(1, Math.min(intensity, 6));
         executorService = Executors.newFixedThreadPool(workerCount);
         running = true;
 
@@ -22,6 +31,10 @@ public class WorkloadEngine {
             Worker worker = new Worker();
             workers.add(worker);
             executorService.execute(worker);
+        }
+
+        if (intensity >= 2 && glSurfaceView != null && gpuRenderer != null) {
+            gpuRenderer.start();  // 启动GPU运算（如果可用）
         }
     }
 
@@ -37,11 +50,35 @@ public class WorkloadEngine {
             executorService.shutdownNow();
             executorService = null;
         }
+
+        if (gpuRenderer != null) {
+            gpuRenderer.stop();
+        }
     }
 
-    public boolean isRunning() {
-        return running;
+    public void setGLSurfaceView(GLSurfaceView surfaceView) {
+        this.glSurfaceView = surfaceView;
+        if (surfaceView != null) {
+            // 在GL线程中安全地设置渲染器
+            surfaceView.setEGLContextClientVersion(2); // 明确指定OpenGL ES 2.0
+            this.gpuRenderer = new GPURenderEngine();
+            surfaceView.setRenderer(gpuRenderer);
+            surfaceView.setRenderMode(GLSurfaceView.RENDERMODE_WHEN_DIRTY); // 开始时设置为按需渲染
+        }
     }
+
+    public void setSystemMonitor(SystemMonitor monitor) {
+        this.systemMonitor = monitor;
+    }
+
+    public float getCurrentGpuLoad() {
+        if (gpuRenderer != null && gpuRenderer.isRunning()) {
+            return gpuRenderer.getGpuLoad();
+        }
+        return 0.0f;
+    }
+
+    public boolean isRunning() { return running; }
 
     private static class Worker implements Runnable {
         private volatile boolean active = true;
@@ -56,11 +93,11 @@ public class WorkloadEngine {
 
             double seed1 = 123.456;
             double seed2 = 789.012;
-            double seed3 = 345.678;
+            double seed3 = 3456.789;
 
             while (active && !Thread.currentThread().isInterrupted()) {
                 // 多层嵌套循环增加计算复杂度
-                for (int outer = 0; outer < 100; outer++) {
+                for (int outer = 0; outer < 10000; outer++) {
                     // 内存密集型操作：频繁访问数组
                     for (int i = 0; i < array.length - 1; i++) {
                         array[i] = array[i] * array[i + 1] + Math.sin(array[i]);
@@ -85,7 +122,7 @@ public class WorkloadEngine {
                             seed2 = 789.012;
                         }
                         if (Double.isNaN(seed3) || Double.isInfinite(seed3)) {
-                            seed3 = 345.678;
+                            seed3 = 3456.789;
                         }
                     }
                     // 矩阵运算模拟

@@ -15,8 +15,8 @@
             android:id="@+id/tvTime"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="32dp"
-            android:layout_marginBottom="48dp"
+            android:layout_marginTop="16dp"
+            android:layout_marginBottom="32dp"
             android:layout_gravity="center"
             android:text="@string/local_time_format"
             android:textSize="@dimen/text_size_xlarge"
@@ -71,7 +71,7 @@
                 android:textColor="@color/text_description" />
 
             <TextView
-                android:id="@+id/tvTemp"
+                android:id="@+id/tvBatteryTemp"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="8dp"
@@ -85,6 +85,33 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="8dp"
                 android:text="@string/running_condition"
+                android:textSize="@dimen/text_size_small"
+                android:textColor="@color/text_description" />
+
+            <TextView
+                android:id="@+id/tvCpuTemp"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:text="CPU温度：--°C"
+                android:textSize="@dimen/text_size_small"
+                android:textColor="@color/text_description" />
+
+            <TextView
+                android:id="@+id/tvCpuLoad"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:text="CPU负荷：--%"
+                android:textSize="@dimen/text_size_small"
+                android:textColor="@color/text_description" />
+
+            <TextView
+                android:id="@+id/tvGpuLoad"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:text="GPU负荷：--%"
                 android:textSize="@dimen/text_size_small"
                 android:textColor="@color/text_description" />
         </LinearLayout>
@@ -186,6 +213,41 @@
                     android:text="@string/stop_warming"
                     android:textColor="@color/white"
                     android:backgroundTint="@color/red_main" />
+            </LinearLayout>
+
+            <!-- GPU可视化窗口 -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:background="@android:color/white"
+                android:padding="20dp"
+                android:layout_marginTop="16dp"
+                android:elevation="4dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="GPU运算可视化"
+                    android:textSize="@dimen/text_size_medium"
+                    android:textStyle="bold"
+                    android:textColor="@color/text_main" />
+
+                <android.opengl.GLSurfaceView
+                    android:id="@+id/glSurfaceView"
+                    android:layout_width="match_parent"
+                    android:layout_height="200dp"
+                    android:layout_marginTop="12dp"
+                    android:background="@color/black" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:text="GPU运算状态：未启动"
+                    android:textSize="@dimen/text_size_small"
+                    android:textColor="@color/text_description"
+                    android:id="@+id/tvGpuStatus" />
             </LinearLayout>
         </LinearLayout>
 

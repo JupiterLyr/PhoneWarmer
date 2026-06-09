@@ -4,6 +4,8 @@
 
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission android:name="android.permission.WAKE_LOCK" />
+    <!-- 声明支持 OpenGL ES 2.0 用于 GPU 运算 -->
+    <uses-feature android:glEsVersion="0x00020000" android:required="false" />
 
     <application
         android:allowBackup="true"
