@@ -54,7 +54,7 @@ public class BurnService extends Service {
 
         // 默认以及 ACTION_START：启动前台
         int intensity = intent.getIntExtra(EXTRA_INTENSITY, 2);
-        Notification notification = buildNotification("高负载运行中，强度 " + intensity + " 档");
+        Notification notification = buildNotification("高负载运行中，强度 " + intensity + " 级");
         int type = 0;
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
             // Android 14+ 必须显式声明前台服务类型

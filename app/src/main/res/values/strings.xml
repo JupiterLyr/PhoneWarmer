@@ -7,9 +7,20 @@
 
     <string name="device_condition">设备状态</string>
     <string name="battery_percentage">0%</string>
+    <string name="running_condition">运行状态：待机中</string>
     <string name="charger_condition">充电状态：—</string>
     <string name="charger_temperature">电池温度：—</string>
-    <string name="running_condition">运行状态：待机中</string>
+    <string name="thermal_status">系统热状态：—</string>
+    <string name="battery_current">电池电流：— μA</string>
+    <string name="battery_power">瞬时功率：— μW</string>
+    <string name="cpu_temperature">CPU温度：—°C</string>
+    <string name="cpu_usage">CPU负荷：—%</string>
+    <string name="cpu_frequency">CPU频率：— MHz（—%）</string>
+    <string name="gpu_usage">进程GPU吞吐量：—%</string>
+    <string name="memory_usage">内存占用：— MB / — MB</string>
+
+    <string name="gpu_visualization">GPU运算可视化</string>
+    <string name="gpu_condition">GPU运算状态：未启动</string>
 
     <string name="consumption_control">耗能控制</string>
     <string name="current_intensity_desc">当前强度</string>
@@ -22,9 +33,4 @@
     <string name="stop_warming">停止运转</string>
     <string name="warming">升温中</string>
     <string name="warming_paused">升温已暂停</string>
-
-    <string name="cpu_temperature">CPU Temperature</string>
-    <string name="gpu_temperature">GPU Temperature</string>
-    <string name="battery_temperature">Battery Temperature</string>
-    <string name="ambient_temperature">Ambient Temperature</string>
 </resources>

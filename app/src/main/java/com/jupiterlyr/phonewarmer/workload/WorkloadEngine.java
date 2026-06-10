@@ -21,7 +21,7 @@ public class WorkloadEngine {
     public synchronized void start(int intensity) {
         stop();
 
-        int workerCount = Math.max(1, Math.min(intensity, 6));
+        int workerCount = Math.max(1, Math.min(intensity, 9));
         executorService = Executors.newFixedThreadPool(workerCount);
         running = true;
 
@@ -34,8 +34,6 @@ public class WorkloadEngine {
         if (intensity >= 2 && glSurfaceView != null && gpuRenderer != null) {
             gpuRenderer.start();
         }
-        // RenderMode 依然保持为 CONTINUOUSLY（在 setGLSurfaceView 中设置），
-        // GPURenderEngine.onDrawFrame 会根据 running 状态区分“待机低负载动画”与“高负载烤机”。
     }
 
     public synchronized void stop() {
@@ -83,14 +81,12 @@ public class WorkloadEngine {
             renderer.setErrorListener(errorListener);
             surfaceView.setRenderer(renderer);
             // 始终使用持续渲染模式：待机时让 GPURenderEngine 绘制轻量级背景动画（避免黑屏），
-            // 烤机时才提高 draw call 数量。避免使用 RENDERMODE_WHEN_DIRTY 导致需手动 requestRender。
+            // 烤机时才提高 draw call 数量。避免使用 RENDERMODE_WHEN_DIRTY 导致需手动 requestRender
             surfaceView.setRenderMode(GLSurfaceView.RENDERMODE_CONTINUOUSLY);
-            // 走到这里才认为初始化成功
             this.gpuRenderer = renderer;
             this.glSurfaceView = surfaceView;
         } catch (RuntimeException e) {
-            // 主线程能直接捕获到的通常是参数校验类异常（如重复 setRenderer），
-            // 失败时确保不留下半初始化的引用，外层可据此禁用 GPU 功能。
+            // 主线程能直接捕获到的通常是参数校验类异常
             this.glSurfaceView = null;
             this.gpuRenderer = null;
             android.util.Log.e(TAG, "setGLSurfaceView failed: " + e.getMessage(), e);

@@ -8,6 +8,7 @@
 
     <!-- Theme Color -->
     <color name="background_main">#F6F7FB</color>
+    <color name="background_card">@color/white</color>
     <color name="green_main">#4CAF50</color>
     <color name="blue_main">#348EEF</color>
     <color name="yellow_main">#FFC107</color>
