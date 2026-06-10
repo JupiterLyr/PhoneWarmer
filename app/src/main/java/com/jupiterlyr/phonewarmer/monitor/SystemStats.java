@@ -2,8 +2,7 @@ package com.jupiterlyr.phonewarmer.monitor;
 
 public class SystemStats {
 
-    /** 系统热状态未知/不支持（API < 29 或读取失败时使用） */
-    public static final int THERMAL_UNKNOWN = -1;
+    public static final int THERMAL_UNKNOWN = -1;  // 系统热状态未知/不支持（API < 29 或读取失败时使用）
 
     private final float cpuTemperature;
     private final float cpuLoad;
@@ -14,7 +13,8 @@ public class SystemStats {
     private final float cpuFreqMhz;
     private final float cpuFreqRatio;
     private final float batteryCurrentMa;
-    private final float batteryPowerW;
+    private final float batteryVoltageMv;
+    private final float batteryPowerMw;
     private final int thermalStatus;
 
     public SystemStats(float cpuTemperature,
@@ -26,7 +26,8 @@ public class SystemStats {
                        float cpuFreqMhz,
                        float cpuFreqRatio,
                        float batteryCurrentMa,
-                       float batteryPowerW,
+                       float batteryVoltageMv,
+                       float batteryPowerMw,
                        int thermalStatus) {
         this.cpuTemperature = cpuTemperature;
         this.cpuLoad = cpuLoad;
@@ -37,7 +38,8 @@ public class SystemStats {
         this.cpuFreqMhz = cpuFreqMhz;
         this.cpuFreqRatio = cpuFreqRatio;
         this.batteryCurrentMa = batteryCurrentMa;
-        this.batteryPowerW = batteryPowerW;
+        this.batteryVoltageMv = batteryVoltageMv;
+        this.batteryPowerMw = batteryPowerMw;
         this.thermalStatus = thermalStatus;
     }
 
@@ -79,18 +81,24 @@ public class SystemStats {
     }
 
     /**
-     * 电池瞬时电流（mA）。
+     * 电池瞬时电流（mA）
      * <p>
-     * 约定：放电时为<b>负数</b>，充电时为<b>正数</b>（与 Android 官方约定一致）。
-     * 部分 ROM 符号反转，UI 层显示时取绝对值更稳妥。
+     * 约定：放电时为<b>负数</b>，充电时为<b>正数</b>（与 Android 官方约定一致）
      */
     public float getBatteryCurrentMa() {
         return batteryCurrentMa;
     }
 
-    /** 电池瞬时功率（W），= 电流 × 电压，符号同电流。 */
-    public float getBatteryPowerW() {
-        return batteryPowerW;
+    /**
+     * 电池瞬时电压（mV）
+     */
+    public float getBatteryVoltageMv() {
+        return batteryVoltageMv;
+    }
+
+    /** 电池瞬时功率（mW） */
+    public float getBatteryPowerMw() {
+        return batteryPowerMw;
     }
 
     /**

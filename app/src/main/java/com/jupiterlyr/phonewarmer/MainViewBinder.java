@@ -53,6 +53,7 @@ public class MainViewBinder {
     private final TextView tvMemoryLoad;
     private final TextView tvCpuFreq;
     private final TextView tvBatteryCurrent;
+    private final TextView tvBatteryVoltage;
     private final TextView tvBatteryPower;
     private final TextView tvThermalStatus;
     private final Button btnStart;
@@ -106,6 +107,7 @@ public class MainViewBinder {
         tvMemoryLoad = activity.findViewById(R.id.tvMemoryload);
         tvCpuFreq = activity.findViewById(R.id.tvCpuFreq);
         tvBatteryCurrent = activity.findViewById(R.id.tvBatteryCurrent);
+        tvBatteryVoltage = activity.findViewById(R.id.tvBatteryVoltage);
         tvBatteryPower = activity.findViewById(R.id.tvBatteryPower);
         tvThermalStatus = activity.findViewById(R.id.tvThermalStatus);
         glSurfaceView = activity.findViewById(R.id.glSurfaceView);
@@ -231,26 +233,35 @@ public class MainViewBinder {
             tvCpuFreq.setText("CPU频率：—（设备受限）");
         }
 
-        // ---- 电池电流：保留方向（充电为正、放电为负），部分国产 ROM 符号反转，可由用户自行解读 ----
-        float currentUa = stats.getBatteryCurrentMa();
-        if (currentUa == 0f) {
+        // ---- 电池电流和电压：保留方向（充电为正、放电为负） ----
+        float currentMa = stats.getBatteryCurrentMa();
+        if (currentMa == 0f) {
             tvBatteryCurrent.setText("电池电流：—");
         } else {
-            String dir = currentUa > 0f ? "充电" : "放电";
+            String dir = currentMa > 0f ? "充电" : "放电";
             tvBatteryCurrent.setText(
                     String.format(Locale.getDefault(),
-                            "电池电流：%,.0f μA（%s）", Math.abs(currentUa), dir)
+                            "电池电流：%,.0f mA（%s）", Math.abs(currentMa), dir)
+            );
+        }
+        float voltageMv = stats.getBatteryVoltageMv();
+        if (voltageMv <= 0f) {
+            tvBatteryVoltage.setText("电池电压：—");
+        } else {
+            tvBatteryVoltage.setText(
+                    String.format(Locale.getDefault(),
+                            "电池电压：%.0f mV", voltageMv)
             );
         }
 
         // ---- 瞬时功率：μW 数量级较大，使用千位分隔提升可读性 ----
-        float powerUw = stats.getBatteryPowerW();
-        if (powerUw == 0f) {
+        float powerMw = stats.getBatteryPowerMw();
+        if (powerMw == 0f) {
             tvBatteryPower.setText("瞬时功率：—");
         } else {
             tvBatteryPower.setText(
                     String.format(Locale.getDefault(),
-                            "瞬时功率：%,.0f μW", Math.abs(powerUw))
+                            "瞬时功率：%,.2f mW", Math.abs(powerMw))
             );
         }
 
@@ -304,7 +315,7 @@ public class MainViewBinder {
             case 6: return "即将关机";
             case SystemStats.THERMAL_UNKNOWN:
             default:
-                return "未知（需 Android 10+）";
+                return "未知（需 Android 11+）";
         }
     }
 

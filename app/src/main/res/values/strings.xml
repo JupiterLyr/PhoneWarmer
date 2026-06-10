@@ -11,8 +11,9 @@
     <string name="charger_condition">充电状态：—</string>
     <string name="charger_temperature">电池温度：—</string>
     <string name="thermal_status">系统热状态：—</string>
-    <string name="battery_current">电池电流：— μA</string>
-    <string name="battery_power">瞬时功率：— μW</string>
+    <string name="battery_current">电池电流：— mA</string>
+    <string name="battery_voltage">电池电压：— mV</string>
+    <string name="battery_power">瞬时功率：— mW</string>
     <string name="cpu_temperature">CPU温度：—°C</string>
     <string name="cpu_usage">CPU负荷：—%</string>
     <string name="cpu_frequency">CPU频率：— MHz（—%）</string>
@@ -26,8 +27,8 @@
     <string name="current_intensity_desc">当前强度</string>
     <string name="current_intensity">2 级</string>
     <string name="intensity_description">耗能强度越高，耗电量越高，但升温效果越好</string>
-    <string name="intensity_add">△</string>
-    <string name="intensity_subtract">▽</string>
+    <string name="intensity_add">▲</string>
+    <string name="intensity_subtract">▼</string>
 
     <string name="start_warming">开始升温</string>
     <string name="stop_warming">停止运转</string>
