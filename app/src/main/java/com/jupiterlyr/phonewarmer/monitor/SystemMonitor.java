@@ -116,9 +116,6 @@ public class SystemMonitor {
         float cpuLoad = getCpuLoad();
         float gpuLoad = getGpuLoad();
         long[] memory = getMemoryInfo(); // {used, total}
-        float memoryLoad = memory[1] > 0L
-                ? (float) memory[0] * 100.0f / (float) memory[1]
-                : 0.0f;
 
         float[] cpuFreq = getCpuFrequency(); // {mhz, ratio}
         float[] battery = getBatteryCurrentAndPower(); // {mA, W}
@@ -131,7 +128,6 @@ public class SystemMonitor {
                 cpuTemp,
                 cpuLoad,
                 gpuLoad,
-                memoryLoad,
                 memory[0],
                 memory[1],
                 cpuFreq[0],
@@ -148,7 +144,7 @@ public class SystemMonitor {
      */
     private void notifyCpuSourceIfChanged() {
         if (listener == null || procStatAvailable == null) return;
-        CpuSource current = Boolean.TRUE.equals(procStatAvailable)
+        CpuSource current = procStatAvailable
                 ? CpuSource.SYSTEM
                 : CpuSource.PROCESS;
         if (current != lastNotifiedSource) {
@@ -199,7 +195,7 @@ public class SystemMonitor {
             }
         }
 
-        if (Boolean.TRUE.equals(procStatAvailable)) {
+        if (procStatAvailable) {
             return getSystemCpuLoad();
         }
         return getProcessCpuLoad();
@@ -243,7 +239,6 @@ public class SystemMonitor {
             if (line == null || !line.startsWith("cpu ")) {
                 return null;
             }
-            // 形如："cpu  user nice system idle iowait irq softirq steal guest guest_nice"
             String[] parts = line.trim().split("\\s+");
             if (parts.length < 5) {
                 return null;

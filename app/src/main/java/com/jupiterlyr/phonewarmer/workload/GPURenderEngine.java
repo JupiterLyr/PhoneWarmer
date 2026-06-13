@@ -36,7 +36,7 @@ public class GPURenderEngine implements GLSurfaceView.Renderer {
     private int viewportHeight = 1;
 
     // 顶点数据
-    private FloatBuffer vertexBuffer;
+    private final FloatBuffer vertexBuffer;
     private final float[] vertices = {
             -1.0f, -1.0f, 0.0f,
             1.0f, -1.0f, 0.0f,

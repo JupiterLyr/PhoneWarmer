@@ -1,5 +1,6 @@
 package com.jupiterlyr.phonewarmer;
 
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.res.ColorStateList;
 import android.opengl.GLSurfaceView;
@@ -157,6 +158,7 @@ public class MainViewBinder {
 
     // ---------- 电量 ----------
 
+    @SuppressLint("SetTextI18n")
     public void renderBattery(@NonNull BatterySnapshot snapshot) {
         int level = snapshot.getBatteryLevel();
         tvBattery.setText(level + "%");
@@ -191,6 +193,7 @@ public class MainViewBinder {
      * @param stats     最新系统数据
      * @param isBurning 当前是否处于烤机运行状态（GPU 负荷文案需要据此切占位）
      */
+    @SuppressLint("SetTextI18n")
     public void renderSystemStats(@NonNull SystemStats stats, boolean isBurning) {
         tvCpuTemp.setText(
                 String.format(Locale.getDefault(), "CPU温度：%.1f°C", stats.getCpuTemperature())
@@ -270,6 +273,7 @@ public class MainViewBinder {
      * 为避免"在首帧 SystemStats 到达之前不会变色"，本方法会立即刷新一次 tvCpuLoad 的文案
      * （保留原有数值，只替换前缀）。
      */
+    @SuppressLint("SetTextI18n")
     public void setCpuLoadSource(@NonNull CpuSource source) {
         this.cpuLoadSource = source;
         // 立即更新前缀：从 tvCpuLoad 现有文案中按全角冒号切分，仅替换冒号之前的标签部分，保留数值不变。
@@ -356,10 +360,12 @@ public class MainViewBinder {
 
     // ---------- 强度 / 运行状态 文案 ----------
 
+    @SuppressLint("SetTextI18n")
     public void renderIntensity(int intensity) {
         tvIntensity.setText(intensity + " 级");
     }
 
+    @SuppressLint("SetTextI18n")
     public void renderRunningStatus(@NonNull String status) {
         tvStatus.setText("运行状态：" + status);
     }

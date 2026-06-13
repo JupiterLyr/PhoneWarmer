@@ -8,7 +8,6 @@ public class SystemStats {
     private final float cpuTemperature;
     private final float cpuLoad;
     private final float gpuLoad;
-    private final float memoryLoad;
     private final long memoryUsedBytes;
     private final long memoryTotalBytes;
     private final float cpuFreqMhz;
@@ -20,7 +19,6 @@ public class SystemStats {
     public SystemStats(float cpuTemperature,
                        float cpuLoad,
                        float gpuLoad,
-                       float memoryLoad,
                        long memoryUsedBytes,
                        long memoryTotalBytes,
                        float cpuFreqMhz,
@@ -31,7 +29,6 @@ public class SystemStats {
         this.cpuTemperature = cpuTemperature;
         this.cpuLoad = cpuLoad;
         this.gpuLoad = gpuLoad;
-        this.memoryLoad = memoryLoad;
         this.memoryUsedBytes = memoryUsedBytes;
         this.memoryTotalBytes = memoryTotalBytes;
         this.cpuFreqMhz = cpuFreqMhz;
@@ -51,11 +48,6 @@ public class SystemStats {
 
     public float getGpuLoad() {
         return gpuLoad;
-    }
-
-    /** 整机内存占用率，0~100。基于 {@code ActivityManager.MemoryInfo} 的 totalMem 与 availMem 计算。 */
-    public float getMemoryLoad() {
-        return memoryLoad;
     }
 
     /** 整机已占用内存（字节）。读取失败时为 0。 */
