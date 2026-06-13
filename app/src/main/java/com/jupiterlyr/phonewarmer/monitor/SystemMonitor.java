@@ -121,7 +121,7 @@ public class SystemMonitor {
                 : 0.0f;
 
         float[] cpuFreq = getCpuFrequency(); // {mhz, ratio}
-        float[] battery = getBatteryCVP(); // {mA, mV, mW}
+        float[] battery = getBatteryCurrentAndPower(); // {mA, W}
         int thermalStatus = getThermalStatus();
 
         // getCpuLoad() 执行后，procStatAvailable 必然已被探测/更新，此处可以安全推导当前来源
@@ -138,7 +138,6 @@ public class SystemMonitor {
                 cpuFreq[1],
                 battery[0],
                 battery[1],
-                battery[2],
                 thermalStatus
         );
     }
@@ -378,25 +377,25 @@ public class SystemMonitor {
     }
 
     /**
-     * 读取电池瞬时电流（mA）、瞬时电压（mV）和瞬时功率（mW）
+     * 读取电池瞬时电流（uA）和瞬时功率（uW）。
      * <p>
-     * 电流通过 {@link BatteryManager#BATTERY_PROPERTY_CURRENT_NOW} 获取（mA），
+     * 电流通过 {@link BatteryManager#BATTERY_PROPERTY_CURRENT_NOW} 获取（μA），
      * 电压通过 sticky broadcast {@code ACTION_BATTERY_CHANGED} 的 {@code EXTRA_VOLTAGE} 获取（mV）。
      * 二者相乘即为功率。
      * <p>
      * 符号约定：充电为正、放电为负。部分国产 ROM 符号反转，UI 层取绝对值更稳妥。
-     *
-     * @return {@code [currentMa, voltageMv, powerMw]}
      */
-    private float[] getBatteryCVP() {
-        long currentMa = 0L;
+    private float[] getBatteryCurrentAndPower() {
+        long currentUa = 0L;
         int voltageMv = 0;
         try {
             BatteryManager bm = (BatteryManager) context.getSystemService(Context.BATTERY_SERVICE);
             if (bm != null) {
-                long raw_currentUa = bm.getLongProperty(BatteryManager.BATTERY_PROPERTY_CURRENT_NOW);
-                if (raw_currentUa != Long.MIN_VALUE) {  // 仅当返回 Long.MIN_VALUE 时视为不可用
-                    currentMa = raw_currentUa;
+                long raw = bm.getLongProperty(BatteryManager.BATTERY_PROPERTY_CURRENT_NOW);
+                // 仅当返回 Long.MIN_VALUE（少数老设备未实现该属性）时视为不可用；
+                // 注意：拔掉充电器时电流会以负数返回（放电方向），不能因此清零。
+                if (raw != Long.MIN_VALUE) {
+                    currentUa = raw;
                 }
             }
         } catch (Exception ignored) {}
@@ -410,9 +409,9 @@ public class SystemMonitor {
             }
         } catch (Exception ignored) {}
 
-        // mA * mV / 1000.0 = mW；正负号沿用电流方向（充电为正、放电为负）
-        float powerMw = (float) currentMa * voltageMv / 1000.0f;
-        return new float[]{(float) currentMa, (float) voltageMv, powerMw};
+        // uA * mV / 1000.0 = uW；正负号沿用电流方向（充电为正、放电为负）
+        float powerUw = (float) currentUa * voltageMv / 1000.0f;
+        return new float[]{(float) currentUa, powerUw};
     }
 
     /**

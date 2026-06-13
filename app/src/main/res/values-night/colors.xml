@@ -14,19 +14,19 @@
     <color name="yellow_main">#FFC107</color>
     <color name="red_main">#F44336</color>
 
-    <color name="green_secondary">#185D1D</color>
-    <color name="blue_secondary">#0949AB</color>
-    <color name="yellow_secondary">#E99917</color>
-    <color name="red_secondary">#BF1B1B</color>
+    <color name="green_secondary">#1B5E20</color>
+    <color name="blue_secondary">#0D47A1</color>
+    <color name="yellow_secondary">#7A6E04</color>
+    <color name="red_secondary">#B71C1C</color>
 
     <!-- Text Color -->
     <color name="text_main">#F8F8F8</color>
     <color name="text_description">#979797</color>
 
     <!-- Button Color -->
-    <color name="btn_default">@color/blue_secondary</color>
-    <color name="btn_warn">@color/yellow_secondary</color>
-    <color name="btn_danger">@color/red_secondary</color>
+    <color name="btn_default">@color/blue_main</color>
+    <color name="btn_warn">@color/yellow_main</color>
+    <color name="btn_danger">@color/red_main</color>
     <color name="btn_disabled">@color/gray</color>
 
 </resources>
