@@ -18,11 +18,7 @@ import com.jupiterlyr.phonewarmer.MainActivity;
 import com.jupiterlyr.phonewarmer.R;
 
 /**
- * 用于在 Activity 切到后台时，通过前台服务+常驻通知防止进程被系统回收，
- * 从而保证 {@link com.jupiterlyr.phonewarmer.workload.WorkloadEngine} 能持续运行。
- *
- * <p>本服务自身不再持有 WorkloadEngine 实例，负载由 Activity 侧统一驱动；
- * 服务的唯一职责是承担前台通知 + 提升进程优先级。
+ * Foreground service that owns the active burn workload so it can continue while the app is backgrounded.
  */
 public class BurnService extends Service {
 
@@ -31,6 +27,8 @@ public class BurnService extends Service {
     public static final String EXTRA_INTENSITY = "extra_intensity";
     public static final String CHANNEL_ID = "burn_service_channel";
     public static final int NOTIFICATION_ID = 1001;
+
+    private final BurnSession burnSession = BurnSession.getInstance();
 
     @Override
     public void onCreate() {
@@ -41,33 +39,33 @@ public class BurnService extends Service {
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         if (intent == null) {
-            // 系统重启服务时无 intent，直接停止
+            burnSession.stop();
             stopSelf();
             return START_NOT_STICKY;
         }
 
         String action = intent.getAction();
         if (ACTION_STOP.equals(action)) {
+            burnSession.stop();
             stopSelf();
             return START_NOT_STICKY;
         }
 
-        // 默认以及 ACTION_START：启动前台
-        int intensity = intent.getIntExtra(EXTRA_INTENSITY, 2);
+        int intensity = intent.getIntExtra(EXTRA_INTENSITY, burnSession.getIntensity());
+        burnSession.start(intensity);
+
         Notification notification = buildNotification("高负载运行中，强度 " + intensity + " 级");
         int type = 0;
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
-            // Android 14+ 必须显式声明前台服务类型
             type = ServiceInfo.FOREGROUND_SERVICE_TYPE_SPECIAL_USE;
         }
         ServiceCompat.startForeground(this, NOTIFICATION_ID, notification, type);
-
-        // 不再 START_STICKY，避免被系统重启后空跑（用户可能已经停止 burn）
         return START_NOT_STICKY;
     }
 
     @Override
     public void onDestroy() {
+        burnSession.stop();
         ServiceCompat.stopForeground(this, ServiceCompat.STOP_FOREGROUND_REMOVE);
         super.onDestroy();
     }

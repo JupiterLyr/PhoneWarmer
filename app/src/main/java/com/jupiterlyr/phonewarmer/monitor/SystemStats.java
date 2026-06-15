@@ -2,7 +2,7 @@ package com.jupiterlyr.phonewarmer.monitor;
 
 public class SystemStats {
 
-    /** 系统热状态未知/不支持（API < 29 或读取失败时使用） */
+    /** 系统热状态未知，不支持（API < 29 或读取失败时使用） */
     public static final int THERMAL_UNKNOWN = -1;
 
     private final float cpuTemperature;
@@ -13,7 +13,8 @@ public class SystemStats {
     private final float cpuFreqMhz;
     private final float cpuFreqRatio;
     private final float batteryCurrentMa;
-    private final float batteryPowerW;
+    private final float batteryVoltageMv;
+    private final float batteryPowerMw;
     private final int thermalStatus;
 
     public SystemStats(float cpuTemperature,
@@ -24,7 +25,8 @@ public class SystemStats {
                        float cpuFreqMhz,
                        float cpuFreqRatio,
                        float batteryCurrentMa,
-                       float batteryPowerW,
+                       float batteryVoltageMv,
+                       float batteryPowerMw,
                        int thermalStatus) {
         this.cpuTemperature = cpuTemperature;
         this.cpuLoad = cpuLoad;
@@ -34,7 +36,8 @@ public class SystemStats {
         this.cpuFreqMhz = cpuFreqMhz;
         this.cpuFreqRatio = cpuFreqRatio;
         this.batteryCurrentMa = batteryCurrentMa;
-        this.batteryPowerW = batteryPowerW;
+        this.batteryVoltageMv = batteryVoltageMv;
+        this.batteryPowerMw = batteryPowerMw;
         this.thermalStatus = thermalStatus;
     }
 
@@ -60,12 +63,12 @@ public class SystemStats {
         return memoryTotalBytes;
     }
 
-    /** 当前所有核心中最高的瞬时频率（MHz）。读取失败时为 0。 */
+    /** 当前所有核中最高的瞬时频率（MHz）。读取失败时为 0。 */
     public float getCpuFreqMhz() {
         return cpuFreqMhz;
     }
 
-    /** 当前最高核频率相对于其最大可用频率的占比（0~100）。读取失败时为 0。 */
+    /** 当前最高核频率相对于其最大可用频率的占比，0~100。读取失败时为 0。 */
     public float getCpuFreqRatio() {
         return cpuFreqRatio;
     }
@@ -73,20 +76,24 @@ public class SystemStats {
     /**
      * 电池瞬时电流（mA）。
      * <p>
-     * 约定：放电时为<b>负数</b>，充电时为<b>正数</b>（与 Android 官方约定一致）。
-     * 部分 ROM 符号反转，UI 层显示时取绝对值更稳妥。
+     * 约定：放电时为负数，充电时为正数。
      */
     public float getBatteryCurrentMa() {
         return batteryCurrentMa;
     }
 
-    /** 电池瞬时功率（W），= 电流 × 电压，符号同电流。 */
-    public float getBatteryPowerW() {
-        return batteryPowerW;
+    /** 电池电压（mV）。 */
+    public float getBatteryVoltageMv() {
+        return batteryVoltageMv;
+    }
+
+    /** 电池瞬时功率（mW），= 电流(mA) × 电压(mV) / 1000。 */
+    public float getBatteryPowerMw() {
+        return batteryPowerMw;
     }
 
     /**
-     * 系统热状态，取值与 {@link android.os.PowerManager#getCurrentThermalStatus()} 一致；
+     * 系统热状态，与 {@link android.os.PowerManager#getCurrentThermalStatus()} 一致；
      * 在 API < 29 或读取失败时为 {@link #THERMAL_UNKNOWN}。
      */
     public int getThermalStatus() {

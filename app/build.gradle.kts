@@ -10,8 +10,8 @@ android {
         applicationId = "com.jupiterlyr.phonewarmer"
         minSdk = 27
         targetSdk = 35
-        versionCode = 10302
-        versionName = "1.3.2"
+        versionCode = 10400
+        versionName = "1.4.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }

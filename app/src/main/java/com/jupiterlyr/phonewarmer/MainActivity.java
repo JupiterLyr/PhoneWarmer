@@ -16,21 +16,21 @@ import androidx.core.content.ContextCompat;
 import com.jupiterlyr.phonewarmer.monitor.BatteryMonitor;
 import com.jupiterlyr.phonewarmer.monitor.SystemMonitor;
 import com.jupiterlyr.phonewarmer.service.BurnService;
+import com.jupiterlyr.phonewarmer.service.BurnSession;
 import com.jupiterlyr.phonewarmer.workload.GPURenderEngine;
-import com.jupiterlyr.phonewarmer.workload.WorkloadEngine;
 
 public class MainActivity extends AppCompatActivity {
 
-    private MainViewBinder viewBinder;
+    private static final float AUTO_STOP_TEMP_C = 42.0f;
+    private static final int REQ_POST_NOTIFICATIONS = 1001;
 
+    private MainViewBinder viewBinder;
     private BatteryMonitor batteryMonitor;
     private SystemMonitor systemMonitor;
-    private WorkloadEngine workloadEngine;
+    private final BurnSession burnSession = BurnSession.getInstance();
 
     private int intensity = 2;
     private boolean isBurning = false;
-    private static final float AUTO_STOP_TEMP_C = 42.0f;
-    private static final int REQ_POST_NOTIFICATIONS = 1001;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -40,17 +40,16 @@ public class MainActivity extends AppCompatActivity {
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 
         viewBinder = new MainViewBinder(this);
-
         batteryMonitor = new BatteryMonitor(this);
         systemMonitor = new SystemMonitor(this);
-        workloadEngine = new WorkloadEngine();
 
         setupGpuEngine();
         bindActions();
 
-        // 初始 UI
+        intensity = burnSession.getIntensity();
+        isBurning = burnSession.isBurning();
         viewBinder.renderIntensity(intensity);
-        viewBinder.renderRunningStatus("待机中");
+        viewBinder.renderRunningStatus(isBurning ? "高负载运行中" : "待机中");
         viewBinder.syncButtons(isBurning, intensity);
 
         ensureNotificationPermission();
@@ -61,7 +60,7 @@ public class MainActivity extends AppCompatActivity {
         if (glSurfaceView == null) return;
 
         try {
-            workloadEngine.setGLSurfaceView(glSurfaceView, new GPURenderEngine.ErrorListener() {
+            burnSession.bindPreviewSurface(glSurfaceView, new GPURenderEngine.ErrorListener() {
                 @Override
                 public void onGlInitError(String message) {
                     runOnUiThread(() -> {
@@ -108,16 +107,14 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void ensureNotificationPermission() {
-        // Android 13+ 需要运行时申请通知权限，否则前台服务的通知不会展示
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            if (ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS)
-                    != PackageManager.PERMISSION_GRANTED) {
-                ActivityCompat.requestPermissions(
-                        this,
-                        new String[]{Manifest.permission.POST_NOTIFICATIONS},
-                        REQ_POST_NOTIFICATIONS
-                );
-            }
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU
+                && ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS)
+                != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(
+                    this,
+                    new String[]{Manifest.permission.POST_NOTIFICATIONS},
+                    REQ_POST_NOTIFICATIONS
+            );
         }
     }
 
@@ -158,8 +155,8 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        // GLSurfaceView 要求与 Activity 生命周期成对调用，否则切出/切回后 GL 线程不会恢复绘制
         viewBinder.onResumeGl();
+        syncBurnStateFromSession();
     }
 
     @Override
@@ -170,17 +167,18 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     protected void onDestroy() {
-        workloadEngine.stop();
-        // Activity 被销毁时一并停掉前台服务，避免重新进入后出现残留通知
-        if (isBurning) {
-            stopBurnService();
-            isBurning = false;
-        }
         super.onDestroy();
     }
 
+    private void syncBurnStateFromSession() {
+        intensity = burnSession.getIntensity();
+        isBurning = burnSession.isBurning();
+        viewBinder.renderIntensity(intensity);
+        viewBinder.renderRunningStatus(isBurning ? "高负载运行中" : "待机中");
+        viewBinder.syncButtons(isBurning, intensity);
+    }
+
     private void startBurn() {
-        workloadEngine.start(intensity);
         startBurnService(intensity);
         isBurning = true;
         viewBinder.renderRunningStatus("高负载运行中");
@@ -188,7 +186,6 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void stopBurn(String reason) {
-        workloadEngine.stop();
         stopBurnService();
         isBurning = false;
         viewBinder.renderRunningStatus(reason);
@@ -197,8 +194,6 @@ public class MainActivity extends AppCompatActivity {
 
     private void restartIfNeeded() {
         if (isBurning) {
-            workloadEngine.start(intensity);
-            // 重启前台服务以更新通知中显示的强度
             startBurnService(intensity);
             viewBinder.renderRunningStatus("强度已调整为 " + intensity + " 级");
         }
@@ -216,7 +211,6 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void stopBurnService() {
-        Intent intent = new Intent(this, BurnService.class);
-        stopService(intent);
+        stopService(new Intent(this, BurnService.class));
     }
 }

@@ -114,6 +114,15 @@
                     android:textColor="@color/text_description" />
 
                 <TextView
+                    android:id="@+id/tvBatteryVoltage"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:text="@string/battery_voltage"
+                    android:textSize="@dimen/text_size_small"
+                    android:textColor="@color/text_description" />
+
+                <TextView
                     android:id="@+id/tvBatteryPower"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"

@@ -7,19 +7,25 @@ The application is designed to achieve rapid discharge and significant temperatu
 
 ```text
 PhoneWarmer/
-├── MainActivity.java          // 主入口
-├── monitor/                   // 监视器
+├── MainActivity.java
+├── MainViewBinder.java
+├── monitor/
 │   ├── BatteryMonitor.java
 │   ├── BatterySnapshot.java
+│   ├── CpuSource.java
 │   ├── SystemMonitor.java
 │   └── SystemStats.java
-├── workload/                  // 高负载引擎
-│   ├── WorkloadEngine.java
-│   └── GPURenderEngine.java
-└── service/
-    └── BurnService.java
+├── service/
+│   ├── BurnService.java
+│   └── BurnSession.java
+└── workload/
+    ├── GPURenderEngine.java
+    └── WorkloadEngine.java
 ```
+
+## Language
+Chinese Simplified | 简体中文
 
 ---
 
-*Updated by* **JupiterLyr** *at* 2026-06-09 13:50 
+*Updated by* **JupiterLyr** *at* 2026-06-16 00:50
